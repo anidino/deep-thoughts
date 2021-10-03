@@ -1,36 +1,24 @@
 const express = require("express");
 const { ApolloServer } = require("apollo-server-express");
-const http = require("http");
 
+const { typeDefs, resolvers } = require("./schemas");
+const db = require("./config/connection");
+
+const PORT = process.env.PORT || 3001;
 const app = express();
-
-const typeDefs = `
-    type Query{
-        totalPosts: Int!
-    }
-`;
-const resolvers = {
-  Query: {
-    totalPosts: () => 100,
-  },
-};
-let apolloServer = null;
-async function startServer() {
-  apolloServer = new ApolloServer({
-    typeDefs,
-    resolvers,
-  });
-  await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
-}
-startServer();
-const httpserver = http.createServer(app);
-
-app.get("/rest", function (req, res) {
-  res.json({ data: "api working" });
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
 });
 
-app.listen(4000, function () {
-  console.log(`server running on port 4000`);
-  console.log(`gql path is ${apolloServer.graphqlPath}`);
+server.applyMiddleware({ app });
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+db.once("open", () => {
+  app.listen(PORT, () => {
+    console.log(`API server running on port ${PORT}!`);
+    console.log(`Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`);
+  });
 });
