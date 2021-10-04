@@ -13,7 +13,7 @@ const server = new ApolloServer({
 
 async function startServer() {
   await server.start();
-  server.applyMiddleWare({ app });
+  server.applyMiddleware({ app });
 }
 
 startServer();
